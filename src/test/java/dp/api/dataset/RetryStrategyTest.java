@@ -1,9 +1,11 @@
 package dp.api.dataset;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpResponse;
+
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +22,11 @@ public class RetryStrategyTest {
     @Test
     void testRetryStrategy_getRetryInterval() {
 
-        assertEquals(RETRY_INTERVAL, retryStrategy.getRetryInterval());
+        HttpResponse httpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        int executionCount = 1;
+        HttpContext httpContext = new BasicHttpContext();
+
+        assertEquals(RETRY_INTERVAL, retryStrategy.getRetryInterval(httpResponse, executionCount, httpContext).toMilliseconds());
     }
 
     @Test

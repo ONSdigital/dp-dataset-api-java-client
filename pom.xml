@@ -11,7 +11,7 @@
     <properties>
         <java.version>1.8</java.version>
         <encoding>UTF-8</encoding>
-        <dp.logging.version>v2.0.0-beta.14</dp.logging.version>
+        <dp.logging.version>v2.0.0-beta.16</dp.logging.version>
         <jackson.version>2.13.4</jackson.version>
     </properties>
 
@@ -23,10 +23,18 @@
     </repositories>
 
     <dependencies>
+        <!-- Keep logging at the beginning of the file so that org.slf4j dependency is imported at its latest version required by logging to work -->
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
+            <groupId>com.github.ONSdigital</groupId>
+            <artifactId>dp-logging</artifactId>
+            <version>${dp.logging.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.1</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -34,14 +42,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.7</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.github.ONSdigital</groupId>
-            <artifactId>dp-logging</artifactId>
-            <version>${dp.logging.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -65,6 +65,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>4.8.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

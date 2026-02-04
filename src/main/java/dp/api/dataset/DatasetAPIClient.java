@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dp.api.dataset.exception.BadRequestException;
 import dp.api.dataset.exception.DatasetAPIException;
+import dp.api.dataset.exception.DatasetAPIResponseParseException;
 import dp.api.dataset.exception.DatasetAlreadyExistsException;
 import dp.api.dataset.exception.DatasetNotFoundException;
 import dp.api.dataset.exception.ForbiddenException;
@@ -14,27 +15,25 @@ import dp.api.dataset.model.Dataset;
 import dp.api.dataset.model.DatasetResponse;
 import dp.api.dataset.model.DatasetVersion;
 import dp.api.dataset.model.Instance;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.Args;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.util.Args;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
+import org.apache.hc.core5.http.ParseException;
 import static com.github.onsdigital.logging.v2.event.SimpleEvent.info;
 
 /**
@@ -84,7 +83,7 @@ public class DatasetAPIClient implements DatasetClient {
     private static CloseableHttpClient createDefaultHttpClient() {
 
         return HttpClients.custom()
-                .setServiceUnavailableRetryStrategy(new RetryStrategy())
+                .setRetryStrategy(new RetryStrategy())
                 .build();
     }
 
@@ -109,7 +108,7 @@ public class DatasetAPIClient implements DatasetClient {
         req.addHeader(serviceTokenHeaderName, serviceAuthToken);
 
         try (CloseableHttpResponse resp = executeRequest(req)) {
-            int statusCode = resp.getStatusLine().getStatusCode();
+            int statusCode = resp.getCode();
 
             switch (statusCode) {
                 case HttpStatus.SC_OK:
@@ -118,8 +117,10 @@ public class DatasetAPIClient implements DatasetClient {
                     throw new InstanceNotFoundException(formatErrResponse(req, resp));
                 default:
                     throw new UnexpectedResponseException(
-                            formatErrResponse(req, resp), resp.getStatusLine().getStatusCode());
+                            formatErrResponse(req, resp), resp.getCode());
             }
+        } catch (ParseException e) {
+            throw new DatasetAPIResponseParseException("failed to parse response from dataset api");
         }
     }
 
@@ -149,7 +150,7 @@ public class DatasetAPIClient implements DatasetClient {
 
         try (CloseableHttpResponse resp = executeRequest(req)) {
 
-            int statusCode = resp.getStatusLine().getStatusCode();
+            int statusCode = resp.getCode();
 
             switch (statusCode) {
                 case HttpStatus.SC_CREATED:
@@ -161,8 +162,10 @@ public class DatasetAPIClient implements DatasetClient {
                     throw new DatasetAlreadyExistsException();
                 default:
                     throw new UnexpectedResponseException(
-                            formatErrResponse(req, resp), resp.getStatusLine().getStatusCode());
+                            formatErrResponse(req, resp), resp.getCode());
             }
+        } catch (ParseException e) {
+            throw new DatasetAPIResponseParseException("failed to parse response from dataset api");
         }
     }
 
@@ -190,6 +193,8 @@ public class DatasetAPIClient implements DatasetClient {
             validate200ResponseCode(req, resp);
             DatasetResponse datasetResponse = parseResponseBody(resp, DatasetResponse.class);
             return datasetResponse.getNext();
+        } catch (ParseException e) {
+            throw new DatasetAPIResponseParseException("failed to parse response from dataset api");
         }
     }
 
@@ -214,7 +219,7 @@ public class DatasetAPIClient implements DatasetClient {
         req.addHeader(serviceTokenHeaderName, serviceAuthToken);
 
         try (CloseableHttpResponse resp = executeRequest(req)) {
-            int statusCode = resp.getStatusLine().getStatusCode();
+            int statusCode = resp.getCode();
 
             switch (statusCode) {
                 case HttpStatus.SC_NO_CONTENT:
@@ -281,7 +286,7 @@ public class DatasetAPIClient implements DatasetClient {
 
         try (CloseableHttpResponse resp = executeRequest(req)) {
 
-            int statusCode = resp.getStatusLine().getStatusCode();
+            int statusCode = resp.getCode();
 
             switch (statusCode) {
                 case HttpStatus.SC_OK:
@@ -294,7 +299,7 @@ public class DatasetAPIClient implements DatasetClient {
                     throw new BadRequestException("invalid dataset request");
                 default:
                     throw new UnexpectedResponseException(
-                            formatErrResponse(req, resp), resp.getStatusLine().getStatusCode());
+                            formatErrResponse(req, resp), resp.getCode());
             }
         }
     }
@@ -326,6 +331,8 @@ public class DatasetAPIClient implements DatasetClient {
         try (CloseableHttpResponse resp = executeRequest(req)) {
             validate200ResponseCode(req, resp);
             return parseResponseBody(resp, DatasetVersion.class);
+        }catch (ParseException e) {
+            throw new DatasetAPIResponseParseException("failed to parse response from dataset api");
         }
     }
 
@@ -362,9 +369,9 @@ public class DatasetAPIClient implements DatasetClient {
         }
     }
 
-    private void validate200ResponseCode(HttpRequestBase httpRequest, CloseableHttpResponse response)
+    private void validate200ResponseCode(HttpUriRequestBase httpRequest, CloseableHttpResponse response)
             throws DatasetNotFoundException, UnexpectedResponseException, UnauthorisedException, ForbiddenException {
-        switch (response.getStatusLine().getStatusCode()) {
+        switch (response.getCode()) {
             case HttpStatus.SC_OK:
                 return;
             case HttpStatus.SC_FORBIDDEN:
@@ -375,11 +382,11 @@ public class DatasetAPIClient implements DatasetClient {
                 throw new UnauthorisedException();
             default:
                 throw new UnexpectedResponseException(
-                        formatErrResponse(httpRequest, response), response.getStatusLine().getStatusCode());
+                        formatErrResponse(httpRequest, response), response.getCode());
         }
     }
 
-    private void addBody(Object object, HttpEntityEnclosingRequestBase httpRequest) throws JsonProcessingException, UnsupportedEncodingException {
+    private void addBody(Object object, HttpUriRequestBase httpRequest) throws JsonProcessingException {
 
         String body = json.writeValueAsString(object);
         StringEntity stringEntity = new StringEntity(body);
@@ -406,17 +413,25 @@ public class DatasetAPIClient implements DatasetClient {
         return str != null && str.length() > 0;
     }
 
-    private <T> T parseResponseBody(CloseableHttpResponse response, Class<T> type) throws IOException {
+    private <T> T parseResponseBody(CloseableHttpResponse response, Class<T> type) throws IOException, ParseException  {
         HttpEntity entity = response.getEntity();
         String responseString = EntityUtils.toString(entity);
         return json.readValue(responseString, type);
     }
 
-    private String formatErrResponse(HttpRequestBase httpRequest, CloseableHttpResponse response) {
+    private String formatErrResponse(HttpUriRequestBase httpRequest, CloseableHttpResponse response) {
+        int responseCode = response.getCode();
 
-        return String.format("the dataset api returned a %s response for %s",
-                response.getStatusLine().getStatusCode(),
-                httpRequest.getURI());
+        try {
+            String requestURI = httpRequest.getUri().toString();
+            return String.format("the dataset api returned a %s response for %s",
+                            responseCode,
+                            requestURI);
+        } catch (URISyntaxException e) {
+            return String.format("the dataset api returned a %s response for %s",
+                responseCode,
+                httpRequest.getRequestUri());
+        }
     }
 
     private CloseableHttpResponse executeRequest(HttpUriRequest req) throws IOException {

@@ -14,12 +14,13 @@ import dp.api.dataset.model.DatasetResponse;
 import dp.api.dataset.model.DatasetVersion;
 import dp.api.dataset.model.Instance;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -76,7 +77,7 @@ public class DatasetAPIClientTest {
         Dataset dataset = createDataset();
 
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_CREATED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         DatasetResponse mockDatasetResponse = mockDatasetResponse(mockHttpResponse);
         Dataset expectedDataset = mockDatasetResponse.getNext();
@@ -84,7 +85,7 @@ public class DatasetAPIClientTest {
         // When createDataset is called
         Dataset actualDataset = datasetAPIClient.createDataset(datasetID, dataset);
 
-        HttpEntityEnclosingRequestBase httpRequest = captureHttpRequestWithBody(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequestWithBody(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -116,7 +117,7 @@ public class DatasetAPIClientTest {
         // Given a mock dataset API response that has unknown fields (fields that are not defined in the model)
 
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_CREATED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = createDataset();
 
@@ -139,7 +140,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -157,7 +158,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 401
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_UNAUTHORIZED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -175,7 +176,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 403
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_FORBIDDEN);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -209,7 +210,7 @@ public class DatasetAPIClientTest {
 
         // Given a mock dataset response from the dataset API
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_OK);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         DatasetResponse mockDatasetResponse = mockDatasetResponse(mockHttpResponse);
         Dataset expectedDataset = mockDatasetResponse.getNext();
@@ -219,7 +220,7 @@ public class DatasetAPIClientTest {
 
         assertNotNull(actualDataset);
 
-        HttpRequestBase httpRequest = captureHttpRequest(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequest(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -242,7 +243,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 404
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_NOT_FOUND);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getDataset is called
         // Then the expected exception is thrown
@@ -258,7 +259,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getDataset is called
         // Then the expected exception is thrown
@@ -274,7 +275,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 401
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_UNAUTHORIZED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getDataset is called
         // Then the expected exception is thrown
@@ -307,12 +308,12 @@ public class DatasetAPIClientTest {
         Dataset dataset = createDataset();
 
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_OK);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When updateDataset is called
         datasetAPIClient.updateDataset(datasetID, dataset);
 
-        HttpEntityEnclosingRequestBase httpRequest = captureHttpRequestWithBody(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequestWithBody(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -338,7 +339,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 404
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_NOT_FOUND);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -356,7 +357,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 401
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_UNAUTHORIZED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -374,7 +375,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 400
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_BAD_REQUEST);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -392,7 +393,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Dataset dataset = new Dataset();
 
@@ -426,7 +427,7 @@ public class DatasetAPIClientTest {
 
         // Given a mock dataset response from the dataset API
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_OK);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         Instance expectedInstance = mockInstanceResponse(mockHttpResponse);
 
@@ -435,7 +436,7 @@ public class DatasetAPIClientTest {
 
         assertNotNull(actualInstance);
 
-        HttpRequestBase httpRequest = captureHttpRequest(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequest(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -457,7 +458,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 404
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_NOT_FOUND);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getInstance is called
         // Then the expected exception is thrown
@@ -473,7 +474,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getInstance is called
         // Then the expected exception is thrown
@@ -504,7 +505,7 @@ public class DatasetAPIClientTest {
 
         // Given a mock dataset response from the dataset API
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_OK);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         DatasetVersion expectedVersion = mockVersionResponse(mockHttpResponse);
 
@@ -513,7 +514,7 @@ public class DatasetAPIClientTest {
 
         assertNotNull(actualDatasetVersion);
 
-        HttpRequestBase httpRequest = captureHttpRequest(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequest(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -535,7 +536,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 404
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_NOT_FOUND);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getDatasetVersion is called
         // Then the expected exception is thrown
@@ -551,7 +552,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 401
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_UNAUTHORIZED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getDatasetVersion is called
         // Then the expected exception is thrown
@@ -567,7 +568,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When getDatasetVersion is called
         // Then the expected exception is thrown
@@ -615,12 +616,12 @@ public class DatasetAPIClientTest {
         DatasetVersion datasetVersion = createDatasetVersion();
 
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_OK);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When updateDatasetVersion is called
         datasetAPIClient.updateDatasetVersion(datasetID, edition, version, datasetVersion);
 
-        HttpEntityEnclosingRequestBase httpRequest = captureHttpRequestWithBody(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequestWithBody(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -645,7 +646,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 404
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_NOT_FOUND);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         DatasetVersion datasetVersion = createDatasetVersion();
 
@@ -663,7 +664,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 401
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_UNAUTHORIZED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         DatasetVersion datasetVersion = createDatasetVersion();
 
@@ -681,7 +682,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         DatasetVersion datasetVersion = createDatasetVersion();
 
@@ -699,12 +700,12 @@ public class DatasetAPIClientTest {
 
         // Given a mock dataset response from the dataset API
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_OK);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When detachVersion is called
         datasetAPIClient.detachVersion(datasetID, version, edition);
 
-        HttpRequestBase httpRequest = captureHttpRequest(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequest(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -723,7 +724,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When detachVersion is called
         // Then the expected exception is thrown
@@ -739,7 +740,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 401
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_UNAUTHORIZED);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When detachVersion is called
         // Then the expected exception is thrown
@@ -755,7 +756,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 403
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_FORBIDDEN);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When detachVersion is called
         // Then the expected exception is thrown
@@ -816,12 +817,12 @@ public class DatasetAPIClientTest {
 
         // Given a mock dataset response from the dataset API
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_NO_CONTENT);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When deleteDataset is called
         datasetAPIClient.deleteDataset(datasetID);
 
-        HttpRequestBase httpRequest = captureHttpRequest(mockHttpClient);
+        HttpUriRequestBase httpRequest = captureHttpRequest(mockHttpClient);
 
         // Then the request should contain the authentication header
         String actualAuthToken = httpRequest.getFirstHeader(authTokenHeaderName).getValue();
@@ -840,7 +841,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 500
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When deleteDataset is called
         // Then the expected exception is thrown
@@ -871,7 +872,7 @@ public class DatasetAPIClientTest {
 
         // Given a request to the dataset API that returns a 403
         CloseableHttpResponse mockHttpResponse = MockHttp.response(HttpStatus.SC_FORBIDDEN);
-        when(mockHttpClient.execute(any(HttpRequestBase.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.execute(any(HttpUriRequestBase.class))).thenReturn(mockHttpResponse);
 
         // When deleteDataset is called
         // Then the expected exception is thrown
@@ -916,14 +917,14 @@ public class DatasetAPIClientTest {
         return instance;
     }
 
-    private HttpEntityEnclosingRequestBase captureHttpRequestWithBody(CloseableHttpClient mockHttpClient) throws IOException {
-        ArgumentCaptor<HttpEntityEnclosingRequestBase> requestCaptor = ArgumentCaptor.forClass(HttpEntityEnclosingRequestBase.class);
+    private HttpUriRequestBase captureHttpRequestWithBody(CloseableHttpClient mockHttpClient) throws IOException {
+        ArgumentCaptor<HttpUriRequestBase> requestCaptor = ArgumentCaptor.forClass(HttpUriRequestBase.class);
         verify(mockHttpClient).execute(requestCaptor.capture());
         return requestCaptor.getValue();
     }
 
-    private HttpRequestBase captureHttpRequest(CloseableHttpClient mockHttpClient) throws IOException {
-        ArgumentCaptor<HttpRequestBase> requestCaptor = ArgumentCaptor.forClass(HttpRequestBase.class);
+    private HttpUriRequestBase captureHttpRequest(CloseableHttpClient mockHttpClient) throws IOException {
+        ArgumentCaptor<HttpUriRequestBase> requestCaptor = ArgumentCaptor.forClass(HttpUriRequestBase.class);
         verify(mockHttpClient).execute(requestCaptor.capture());
         return requestCaptor.getValue();
     }
