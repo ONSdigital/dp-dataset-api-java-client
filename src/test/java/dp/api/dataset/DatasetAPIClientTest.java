@@ -14,7 +14,6 @@ import dp.api.dataset.model.DatasetResponse;
 import dp.api.dataset.model.DatasetVersion;
 import dp.api.dataset.model.Instance;
 import org.apache.commons.io.IOUtils;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
